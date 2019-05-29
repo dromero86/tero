@@ -1,0 +1,12 @@
+{
+	"contacto" : 
+	{
+		"app"     : "",
+		"table"   : "",
+		"fields"  : [],
+		"subject" : "Solicitud de contacto",
+		"template": "", 
+		"to"      : "",
+		"redir"	  : ""
+	} 
+}

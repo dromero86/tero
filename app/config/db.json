@@ -1,0 +1,13 @@
+{
+	"database" :
+	{
+		"driver"    : "mysql"    ,
+		"user"		: ""      ,
+		"pass"		: ""          ,
+		"host"		: "localhost" ,
+		"db"  		: ""        ,
+		"charset"  	: "utf8"      ,
+		"collate"  	: "utf8_general_ci",
+		"debug"     : false
+	}
+}

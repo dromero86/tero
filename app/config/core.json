@@ -1,0 +1,8 @@
+{
+    "loader": [ ],
+    "debug"   : false,
+    "error"   : "On" ,
+    "leak"    : "50M",
+    "timezone":"America/Argentina/Buenos_Aires",
+    "encoding": "UTF-8" 
+}
