@@ -412,3 +412,68 @@ Then we must define our theme.json
     "view": "view.json"
 }
 ```
+Inside the folder my_theme we must create 2 files vars.json for static variables and view.json that will contain the structure of the pages
+The proposed structure of the my_theme folder can be:
+
+
+```
+   MyTheme/
+	|--css/
+	|--fonts/
+	|--img/
+	|--js/
+	|--css/ 
+	|
+	|--views/
+	|  |--blocks/
+	|     |--_home.php
+	|     |--_product.php
+	|     |--_contact.php
+	|  |--emails/
+	|  |--global/
+	|     |--_layout.php
+	|     |--_header.php
+	|     |--_foorer.php
+	|
+	|--vars.json
+	|--view.json
+```
+You can see that we created 3 global files, layout, header, footer and 3 files that correspond to parts that can (or can not) be repeated.
+
+For now vars.json we'll leave it with {} and focus on view.json
+
+Create a page in view.json
+
+```
+{
+	"index" :
+	{ 
+        "layout" : "global/_layout.php",
+        "header" : "global/_header.php",
+        "content":  
+        [
+            { "file": "block/home.php" }, 
+        ],  
+        "footer" : "global/_footer.php"
+	},
+```
+we invoke this from the controller like this:
+
+```php
+$App->get("index", function())  
+{ 
+     $this->view->write(“index”);
+});
+```
+
+This will return the web page.
+
+Now, how does this work? What the hell is it doing inside?
+
+It all starts in the Parser library, a brilliant idea of codeigniter to work with templates, to see its use see:https://www.codeigniter.com/userguide3/libraries/parser.html 
+The idea is very simple, it is to replace this "{variable_en_plantilla_html}" by this "$ variable_php_usually_string_o_entero"
+
+Tero takes this concept to a next level and transforms it into a principle of layout of views, this new law, so to speak, will be expressed in the following way.
+
+
+> "The HTML view will not under any circumstances have PHP code, its use will be penalized with imprisonment in maximum security jail (nah !, lie;))".
