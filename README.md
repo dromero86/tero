@@ -1,15 +1,5 @@
 # TERO
 
-## PRINCIPLES 
-
-- [x] Tero must be easy to learn.
-- [x] Tero must be easy to apply.
-- [x] Tero must be easy to teach.
-- [x] Tero must know how to adapt to the future.
-- [x] Tero must be ridiculously intuitive.
-- [x] Tero must be the developer's tool
-- [x] Tero must be a framework to earn money through the solution made in the shortest possible time
-
 Tero is written in php 5.3 (which supports the use of anonymous functions with bind), designed to run both that version and server versions 5.6 and 7+
 
 It is optional to use friendly urls but if you want it to work you should use it in apache with mod_rewrite enabled.
@@ -643,3 +633,13 @@ this should help us to fill this view
 ```
 
 Note that there is no list that involves the template, this is because they are individual variables.
+
+## PRINCIPLES 
+
+- [x] Tero must be easy to learn.
+- [x] Tero must be easy to apply.
+- [x] Tero must be easy to teach.
+- [x] Tero must know how to adapt to the future.
+- [x] Tero must be ridiculously intuitive.
+- [x] Tero must be the developer's tool
+- [x] Tero must be a framework to earn money through the solution made in the shortest possible time
