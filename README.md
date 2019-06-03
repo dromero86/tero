@@ -10,7 +10,7 @@ It is supported on both Windows (wamp) and Linux (lamp) base servers
 
 To install tero just go with your console to the web directory and run composer
 
-###Install
+### Install
 
 ```
 composer create-project dromero86/tero project_name
@@ -40,7 +40,7 @@ index.php acts as bootstrapper to execute the core, this also has two tasks, the
 
 The folder app has the structure of the framework that is not public, therefore it is not accessible via web instead the folder ui has all the resources that will be of web use as images, scripts and css files.
 
-###Hello World with tero is:
+### Hello World with tero is:
 
 ```php
 //1#
@@ -71,7 +71,7 @@ Hello World!
 
 Note that the use of "index" refers to the default controller, therefore there is no need to add parameters to the url.
 
-##Setup Apps
+## Setup Apps
 
 To include libraries or helpers, core.json is used, this file contains the load configuration and other options to improve or limit the performance of the app, this file has this syntax:
 
@@ -109,7 +109,7 @@ $App->get("...", function(...))
 });
 ```
 
-##Router URLs
+## Router URLs
 
 To take the arguments of the url as parameters and to understand how the processes are processed, we will explain how each of them works.
 
@@ -162,7 +162,7 @@ $App->get("product/:name-:id", function($name, $id)) //name unnused in the examp
 
 Later we will see more uses of the parameters.
 
-###Redirections
+### Redirections
 
 We often need to jump from one page to another from the server, this can be solved with the native "redirect" function that is implemented like this
 
@@ -175,19 +175,128 @@ $App->get("product/:id", function($id))
 ```
 In the example, it means that you will jump from the products page to the categories page from the server, this function also allows you to indicate headers for when you perform permanent redirects.
 
-#Requesting
+# Requesting
 
 Capturing the get variables of the url:
 
-the simple native path: the get parameters are serialized and passed to the model function as follows:
-
-//http://localhost/museum_library/?action=download_pdf&file=myfile.pdf
+A) the simple native path: the get parameters are serialized and passed to the model function as follows:
 
 ```php
+//http://localhost/museum_library/?action=download_pdf&file=myfile.pdf
+
 $App->get("download_pdf", function($file)) 
 {
 ...
 ```
+Here the processed variable is file, note that "action" is a reserved word and is used internally by the core of tero.
 
+We must also understand that Tero returns all the parameters in string, it is our responsibility to perform the appropriate cast to avoid security cracks.
 
+B) using friendly urls: Parameters are obtained as a result of using regular expressions on the pattern of the url (the get is not used) the example we saw earlier
 
+```php
+//http://localhost/terocart/product/36
+$App->get("product/:id", function($id)) 
+{
+...
+```
+Here it will take "product/36" and in this case, it will take "36" and pass it as an argument of the method.
+
+C) a bit more complex (and fun): Tero can combine the 2 things, on the one hand, extract variables through a regular expression as well as process the get parameters, leaving a funny monster
+
+```php
+//http://localhost/clothestero/tshirt-category/36?color=blue&size=xxl
+$App->get("tshirt-category/:category, function($category, $color=””, $size=””)) 
+{
+...
+```
+
+For our Frankenstein to work, we must consider some things:
+
+1. The url pattern goes first
+2. The get arguments are not written as if they were regular expressions
+3. The get arguments can be placed as optional using php syntax for functions {$ variable = ""}
+4. When we use Get we must respect the order of the parameters
+
+## Working with POST
+
+The use of post is not native to the core of tero, but if it is included as a library, therefore we must include it in core.json
+
+```json
+{
+    "loader":
+    [
+        ...
+        {"file":"app/vendor/input" , "library":{ "class":"input" , "rename":"input"  } 
+
+```
+Its use is really simple
+
+```php
+$App->get("...”, function(...)) 
+{
+
+   $post = $this->input->post();
+   ...
+```
+The post() input method converts the _POST array into an object (with the possibility of treating the elements), as an object it will be useful later when we use database, but even if we do not need it for that, its use is really comfortable
+
+```
+	$post = $this->input->post();
+	
+	$post->name 
+	$post->phone
+	etc
+```
+
+Check if I have post elements
+
+```
+$App->get("...”, function(...)) 
+{
+   if($this->input->has_post())
+   {
+     $post = $this->input->post();
+   }
+```
+
+## SETUP DATABASE
+
+To integrate our database we must first enable it from core.json, this is done as follows:
+
+```json
+{
+    "loader":
+    [
+      ...
+      {"file":"app/vendor/database", "library":{ "class":"database" , "rename":"db"  } 
+```
+
+This indicates that we will have access to the database through the core attribute "$this->db" but we still have to configure the access to the database, for this we will have to edit db.json
+
+```json
+{
+    "database" :
+    {
+        "driver"    : "mysqli",
+        "user"      : "mydbuser"      ,
+        "pass"      : "mydbpass"          ,
+        "host"      : "myhostname" ,
+        "db"        : "mydbname"        ,
+        "charset"   : "utf8"      ,
+        "collate"   : "utf8_general_ci",
+        "debug"     : false
+    }
+}
+```
+
+If everything is ok, we can check if the connection works like this
+
+```php
+$App->get("...”, function(...)) 
+{
+   var_dump($this->db->is_ready());
+
+```
+
+If I return TRUE it means that we connect successfully.
