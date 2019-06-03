@@ -1,0 +1,17 @@
+{
+    "name": "dromero86/tero",
+    "description": "Tero is a very simple micro framework for PHP.",
+    "homepage": "https://github.com/dromero86/tero",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniel Romero",
+            "email": "dromero@ymail.com",
+            "homepage": "https://github.com/dromero86/tero/",
+            "role": "Original Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    } 
+}
