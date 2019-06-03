@@ -1,5 +1,15 @@
 # TERO
 
+## PRINCIPLES 
+
+- [x] Tero must be easy to learn.
+- [x] Tero must be easy to apply.
+- [x] Tero must be easy to teach.
+- [x] Tero must know how to adapt to the future.
+- [x] Tero must be ridiculously intuitive.
+- [x] Tero must be the developer's tool
+- [x] Tero must be a framework to earn money through the solution made in the shortest possible time
+
 Tero is written in php 5.3 (which supports the use of anonymous functions with bind), designed to run both that version and server versions 5.6 and 7+
 
 It is optional to use friendly urls but if you want it to work you should use it in apache with mod_rewrite enabled.
@@ -475,5 +485,161 @@ The idea is very simple, it is to replace this "{variable_en_plantilla_html}" by
 
 Tero takes this concept to a next level and transforms it into a principle of layout of views, this new law, so to speak, will be expressed in the following way.
 
-
+```
 > "The HTML view will not under any circumstances have PHP code, its use will be penalized with imprisonment in maximum security jail (nah !, lie;))".
+```
+
+With this we create a problem for our PHP programmer friend, but do not panic, we solve it in this way.
+
+1. Understanding the power of Parser rendering that allows us to connect simple variables as an array, later this will allow us to connect our data resultset.
+2. Understanding that list rendering allows us to write selective code eg:
+
+```html
+<div>
+{si_tiene_session_activa}
+	<h1>Session id: {si_tiene_session_activa_username}</h1>
+{/si_tiene_session_activa}
+</div>
+```
+
+While my server code could be:
+
+```php
+$data[“si_tiene_session_activa”]= array();
+
+$sesion = $this->session->recv() ;
+
+if(!$sesion) // != FALSE
+{
+$data[“si_tiene_session_activa”][]=array
+(
+“si_tiene_session_activa_username”=>$session
+);
+}
+
+$this->view->write(“myview”, $data);
+```
+
+Later, we can do this only in one line.
+
+The benefits then, are in sight;)
+
+1. Segmentation of templates, everything that can be done in blocks is reused.
+2. Simplification of the layout with simple variables to place and use
+3. Easy to debug, if you see a variable "{sin_renderizar}" it's because something is wrong.
+4. Without php errors, if you do not embed php code there is no possibility of error.
+5. Friendly with javascript, friend, this makes the difference.
+6. Easy to think for designers and layout designers (Proven)
+
+## DATASET
+
+The pipeline between the data and the view.
+
+To minimize the excess code produced by the array that Parser receives, to solve the complexity produced by connecting data with the view and to reflect a readable code that can be maintained over time, Dataset exists.
+
+Let's include it to core.json
+
+```
+{
+    "loader":
+    [
+      …
+      {"file":"app/vendor/Dataset", "library":{ "class":"Dataset" , "rename":"data"  } 
+```
+
+How is it used?
+
+Set a variable
+
+```php
+$this->data->set(“username”, “mynickname”);
+```
+
+or
+
+```php
+$this->data->set(“username”, $variable);
+```
+
+if we want to define a list with this structure:
+
+```html
+{news}
+<h1>{news_title}</h1>
+<p>{news_details}</p>
+{/news}
+```
+
+we must start a list like this:
+
+```php
+$this->data->set(“news”);
+```
+
+to fill it we can map an object
+
+```php
+$news = new stdclass;
+$news->title = “A example  news”;
+$news->details = “this is a example news row”;
+
+$this->data->map(“news”, $news);
+
+$this->view->write(“myview”, $this->data->get());
+```
+
+This should produce
+
+```html
+<h1>A example  news</h1>
+<p>this is a example news row</p>
+```
+
+Now, this is not meant for the use of stdclass, then ..., what is it for?
+
+Database!
+
+Look how
+
+```php
+$this->data->set(“news”);
+
+$rs = $this->db->query(“SELECT title,details FROM news_table”);
+
+foreach($rs->result() as $row)
+	$this->data->map(“news”, $row);
+
+$this->view->write(“myview”, $this->data->get());
+```
+
+In just 5 lines you did the following:
+
+1. You filled a template with data.
+2. If there is no data, the variables will not be visible
+3. If your query has more fields, they are automatically rendered as news_xxxx
+4. You can easily change the name of the variables to make a more readable code
+
+What happens if I do not want a list, or do I have a single record to render?
+
+Well, then you can use "automap", whose principle is to take an object and for each property to create an individual variable.
+
+Going back to the news example ...
+
+```php
+$news = new stdclass;
+$news->title = “A example  news”;
+$news->details = “this is a example news row”;
+
+$this->data->automap($news, “news_”);
+
+$this->view->write(“myview”, $this->data->get());
+```
+
+this should help us to fill this view
+
+```html
+<h1>{news_title}</h1>
+<p>{news_details}</p>
+```
+
+Note that there is no list that involves the template, this is because they are individual variables.
