@@ -3,6 +3,7 @@
     "description": "Tero is a very simple micro framework for PHP.",
     "homepage": "https://github.com/dromero86/tero",
     "license": "MIT",
+	"minimum-stability":"dev",
     "authors": [
         {
             "name": "Daniel Romero",
