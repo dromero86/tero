@@ -300,3 +300,115 @@ $App->get("...”, function(...))
 ```
 
 If I return TRUE it means that we connect successfully.
+
+
+## QUERY AND RESULTS
+
+To run a query, just put
+
+```php
+$rs = $this->db->query(“SELECT … FROM … ”);
+```
+
+where $ rs will have information of the results encapsulated in an object to access the necessary times in the following way
+
+```php
+$rs = $this->db->query(“SELECT id FROM … ”);
+
+foreach($rs->result() as $row)
+{
+	//$row->id;
+	//$row->{“id”}
+}
+```
+If you want to run a stored procedure, you can execute it as:
+
+```php
+$rs = $this->db->procedure(“mysp(1,’2’)”);
+
+foreach($rs->result() as $row)
+{
+   ...
+}
+```
+*IMPORTANT: to work with stored procedures in mysql you must configure in db.json that the driver is mysqli*
+
+
+## ACTIVE SESSIONS
+
+We can work with sessions using the Telepatia library. To load it we must edit core.json in the following way.
+
+```json
+{
+    "loader":
+    [
+      …
+      {"file":"app/vendor/database", "library":{ "class":"database" , "rename":"db"  } 
+      {"file":"app/vendor/Telepatia", "library":{ "class":"Telepatia" , "rename":"sesion"  } 
+
+```
+
+For sessions to work we must understand that these are stored in database, therefore, it is required to load the database library before Telepatia. Once this is done we must configure sesion.json
+
+
+```json
+{
+    "Telepatia": 
+    {
+        “app”:”name_of_cookie_ref_app”,
+        “table”:”db_session_table”,
+        “timeout”: 60,
+    }
+}
+
+```
+
+To store a variable in the session we must place:
+
+```php
+//$variable ( string | id | float )
+$this->session->send( $variable);
+```
+
+To recover the stored data:
+
+```php
+$value = $this->session->recv() ;
+```
+
+If the session is inactive $value will be equal to FALSE
+
+To close the session we must place:
+
+```php
+$this->session->close();
+```
+
+## WEB SKELETONS
+
+Web skeletons are pages composed of templates that are joined together to then be rendered together with the data.
+
+To use it we must make the following adjustments:
+
+In core.json
+
+```json
+{
+    "loader":
+    [
+     {"file":"app/vendor/Parser", "library":{ "class":"Parser", "rename":"parser" } },
+     {"file":"app/vendor/Skeleton", "library":{ "class":"Skeleton","rename":"view”} }, 
+
+```
+
+Parser, at low level, to replace values in variables "{my_variable}".
+
+Then we must define our theme.json
+
+```json
+{
+    "path": "ui/themes/my_theme/",
+    "vars": "vars.json",
+    "view": "view.json"
+}
+```
