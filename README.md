@@ -71,6 +71,12 @@ Hello World!
 
 Note that the use of "index" refers to the default controller, therefore there is no need to add parameters to the url.
 
+## Cli Mode
+
+```bash
+php /path/to/tero/index.php action="my-command" arg_name1="arg_value1" arg_nameN="arg_valueN"
+```
+
 ## Setup Apps
 
 To include libraries or helpers, core.json is used, this file contains the load configuration and other options to improve or limit the performance of the app, this file has this syntax:
@@ -300,6 +306,59 @@ $App->get("...”, function(...))
 ```
 
 If I return TRUE it means that we connect successfully.
+
+## Support Multibase connection
+
+Set default TRUE for active database
+
+```json
+{
+    "server1" :
+    {
+        "driver"    : "mysqli",
+        "user"      : "mydbuser"      ,
+        "pass"      : "mydbpass"          ,
+        "host"      : "myhostname" ,
+        "db"        : "mydbname"        ,
+        "charset"   : "utf8"      ,
+        "collate"   : "utf8_general_ci",
+        "debug"     : false,
+        "default"   : true
+    },
+    "server2" :
+    {
+        "driver"    : "mysql",
+        "user"      : "mydbuser"      ,
+        "pass"      : "mydbpass"          ,
+        "host"      : "myhostname" ,
+        "db"        : "mydbname"        ,
+        "charset"   : "utf8"      ,
+        "collate"   : "utf8_general_ci",
+        "debug"     : false
+    },
+    "server3" :
+    {
+        "driver"    : "mssql",
+        "user"      : "mydbuser"      ,
+        "pass"      : "mydbpass"          ,
+        "host"      : "myhostname" ,
+        "db"        : "mydbname"        ,
+        "charset"   : "utf8"      ,
+        "collate"   : "utf8_general_ci",
+        "debug"     : false
+    }
+}
+```
+
+Just call
+
+```php
+$server2 = $this->db->use("server2");
+$server2->query("...");
+
+$server3 = $this->db->use("server3");
+$server3->query("...");
+```
 
 
 ## QUERY AND RESULTS
