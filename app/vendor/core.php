@@ -56,7 +56,7 @@ class core {
      *
      * @var string
      */
-    const VERSION = '4.0.1-dev';
+    const VERSION = '4.0.2-dev';
 
 
     /**
@@ -310,6 +310,28 @@ class core {
             $method = isset($_GET[ $this->default_key ]) ? $_GET[ $this->default_key ] : FALSE ; if ($method == FALSE) { $method = $this->default_method; }
             $PARAM  = $_GET;
         }
+		
+		//Version 4.0.2 
+        //support console commands
+        if( isset($_SERVER["argv"]) )
+        {  
+            foreach ($_SERVER["argv"] as $k => $item) 
+            {  
+                if($item != "index.php")
+                {  
+                    if( strpos($item, "=") !== false )
+                    {
+                        list( $get_k, $get_v ) = explode("=", $item);
+                        $PARAM[$get_k]=$get_v;
+                        $method = $get_v;
+                    }
+                    else
+                    {  
+                        $method = "index";
+                    } 
+                }
+            }  
+        }
  
         $this->page = $method ; 
 
@@ -544,9 +566,9 @@ class core {
     private function get_client_route()
     {
 
-        $uri  = $_SERVER["REQUEST_URI"];
+        $uri  = isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : "";
 
-        $file = $_SERVER["PHP_SELF"   ];
+        $file = isset($_SERVER["PHP_SELF"]) ? $_SERVER["PHP_SELF"] : "";
 
         $dir  = pathinfo($file,PATHINFO_DIRNAME);
 

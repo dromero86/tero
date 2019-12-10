@@ -71,6 +71,27 @@ if (!function_exists('_LOG'))
 	}
 }
 
+if (!function_exists('APP_LOG')) 
+{
+    /**
+     * APP_LOG
+     *
+     * stack log with format with core call
+     *
+     * @param   object Core object
+     * @param   string file origin of log
+     * @param   string message to log  
+     */
+
+    function APP_LOG($cls, $message)
+    {
+        $App  = core::getInstance();
+        $hora = date('H:i:s', time());
+        $App->write_log('<li class="list-group-item"><span class="label label-primary">'.$cls.'</span> '.$message.' <span class="badge">'.$hora.'</span></li>');
+    }
+}
+
+
 if (!function_exists('_LOG_WRITE')) 
 {
     /**

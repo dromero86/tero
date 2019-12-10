@@ -19,61 +19,26 @@
  */ 
 class database {
 
-
     /**
-     * Motor database, default mysql
+     * Conection dsn list
      *
-     * @var string
-     */
-	private $driver  = NULL;
-
-
-    /**
-     * nombre de usuario
-     *
-     * @var string
-     */    
-	private $user    = NULL;
-
-
-    /**
-     * contraseña
-     *
-     * @var string
+     * @var array
      */  
-	private $pass    = NULL;
-
-
-    /**
-     * database name
-     *
-     * @var string
-     */  
-	private $db      = NULL; 
-
+    private $dsn = array();
 
     /**
-     * encoding
+     * Conection dsn active
      *
-     * @var string
+     * @var object
      */  
-	private $charset = NULL;
-
-
-    /**
-     * charater collation
-     *
-     * @var string
-     */  
-	private $collate = NULL;
-
+    private $current = null;
 
     /**
      * Conection instance of database
      *
      * @var object
      */  
-	private $link    = NULL;
+    private $link    = array();
 
 
     /**
@@ -81,7 +46,7 @@ class database {
      *
      * @var string
      */  
-	private $isok 	 = FALSE;
+    private $isok    = array();
     
 
     /**
@@ -89,7 +54,7 @@ class database {
      *
      * @var string
      */ 
-	private $debug   = FALSE;
+    private $debug   = FALSE;
 
 
     /**
@@ -97,7 +62,7 @@ class database {
      *
      * @var string
      */
-	private $config_file = "app/config/db.json";
+    private $config_file = "app/config/db.json";
 
 
     /**
@@ -105,37 +70,36 @@ class database {
      *
      * @var object 
      */ 
-	private static $instancia= null;
-
+    private static $instancia = null;
 
     /**
      * Get the static core instance 
      *
      * @return object
      */
-	public static function getInstance()
-	{
-		$that = null;
+    public static function getInstance()
+    {
+        $that = null;
 
-		if (!self::$instancia instanceof self)
-		{
-			if(self::$instancia == null)
-			{
-				$that = new self;
-				self::$instancia = $that;
-			}
+        if (!self::$instancia instanceof self)
+        {
+            if(self::$instancia == null)
+            {
+                $that = new self;
+                self::$instancia = $that;
+            }
 
-		}
-		else
-		{
-			$that = self::$instancia;
-		}
+        }
+        else
+        {
+            $that = self::$instancia;
+        }
 
-		if($that == null)
-			die(__CLASS__.": Fallo el singleton");
+        if($that == null)
+            die(__CLASS__.": Fallo el singleton");
 
-		return $that;
-	}
+        return $that;
+    }
 
 
     /**
@@ -143,196 +107,187 @@ class database {
      * 
      * 
      */
-	function __construct() {
+    function __construct() {
 
-		self::$instancia = $this;
+        self::$instancia = $this;
 
-		$this->before_connect();
-
-		$this->connect();
-
-		$this->after_connect();
-	}
-
-    /**
-     * return ready state
-     *
-     * @return boolean
-     */
-	public function is_ready()
-	{
-		return $this->isok;
-	}
+        $this->setup_config_file();  
+    }
 
 
     /**
-     * check if exist table
-     *
-     * @param   string TableName
-     * @return boolean
+     * Load configuration and try conect to default database
+     * 
+     * 
      */
-	public function exist($table)
-	{
-		$rs = $this->query("SELECT * FROM information_schema.TABLES WHERE table_schema = '{$this->db}'  AND table_name = '{$table}' LIMIT 1");
+    private function setup_config_file() 
+    {
 
-		$ret = FALSE; foreach ($rs->result() as $row) { $ret = TRUE;  }
+        $config = file_get_json(BASEPATH.$this->config_file);
 
-		return $ret;
-	}
+        $has = FALSE;
 
+        foreach ($config as $name => $cnf) 
+        {  
+            $has = TRUE;
 
-    /**
-     * obtain object list of tables
-     *
-     * @return object
-     */
-	public function show_tables()
-	{
-		return $this->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE table_schema = '{$this->db}'");
-	}
-
-
-    /**
-     * obtain object list with columns of table 
-     *
-     * @param   string TableName
-     * @return object
-     */
-	public function show_column($table)
-	{
-		return $this->query("SELECT COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS WHERE table_schema = '{$this->db}'  AND table_name = '{$table}'");
-	}
-
-    /**
-     * obtain object list with columns of table 
-     *
-     * @param   string TableName
-     * @param   string ColumnName
-     * @return boolean
-     */
-	public function has_column($table, $column)
-	{
-		$rs = $this->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE table_schema = '{$this->db}'  AND table_name = '{$table}' AND COLUMN_NAME='{$column}' LIMIT 1");
-
-		$ret = FALSE; foreach ($rs->result() as $row) { $ret = TRUE;  }
-
-		return $ret;
-	}
-
-    /**
-     * obtain object list with columns configuration of table 
-     *
-     * @param   string TableName
-     * @return object
-     */
-	public function show_full_column($table)
-	{
-		return $this->query("SELECT ORDINAL_POSITION, COLUMN_NAME, COLUMN_TYPE, COLUMN_KEY  FROM information_schema.COLUMNS WHERE table_schema = '{$this->db}'  AND table_name = '{$table}'");
-	}
+            if(isset($cnf->default))
+                if($cnf->default==true)
+                    $this->current = $name; 
  
+            $this->connect($name, $cnf);
+
+        }
+
+       
+        if($has == FALSE)
+            APP_LOG( __CLASS__, "No default database configured" );
+
+        //unset($config);
+    }
+
 
     /**
      * Establishing conection with database
      *
      * 
      */ 
-	private function connect()
-	{
-		if($this->isok == FALSE)
-		{ 
-		    try
-		    {
-			    $this->link = new PDO($this->driver.':host='.$this->host.';dbname='.$this->db, $this->user, $this->pass);
-			    $this->link->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  
-			    $this->link->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, TRUE);
-			    $this->isok = TRUE;
-		    } 
-		    catch (PDOException $e) 
-		    {
-			    var_dump($e);
-		    }
+    private function connect($cId, $config)
+    {
+		//current dsn is ready conect?
+        if(!isset($this->isok[$cId]))
+        {
+            $this->isok[$cId] = FALSE; 
+        }
 
-		}
-	}
+		
+        if(!isset($this->dsn[$cId]))
+        {
+			//current dsn exist?
+            $this->dsn[$cId] = $config;
+			
+			//current database link offline
+			$this->link[$cId] = NULL;
+        }
+ 
+
+        $ret  = FALSE;            
+
+        try
+        {
+            $this->link[$cId] = new PDO($config->driver.':host='.$config->host.';'.( isset($config->port) ? 'port='.$config->port.';' : '' ).'dbname='.$config->db, $config->user, $config->pass);
+            $this->link[$cId]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  
+            $this->link[$cId]->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, TRUE);
+            $this->isok[$cId] = TRUE;
+            $ret  = TRUE;
+
+            $this->setEncoding($config->charset, $config->collate); 
+        } 
+        catch (PDOException $e) 
+        { 
+            APP_LOG( __CLASS__, "PDOException: {$e->getMessage()} - ".$config->driver.':host='.$config->host.';'.( isset($config->port) ? 'port='.$config->port.';' : '' ).'dbname='.$config->db);
+        }  
+
+        return $ret;
+    }
 
 
     /**
-     * Load config from db.json
-     * 
-     * 
+     * Get instance of database 
+     *
+     * @return database
+     */ 
+    public function use($db_instance)
+    {
+        $this->current = $db_instance;
+        return clone $this;
+    }
+
+    /**
+     * return ready state
+     *
+     * @return boolean
      */
-	private function before_connect() 
-	{
+    public function is_ready()
+    {
+        $cId = $this->getConectionIdentity();
+        return $this->isok[$cId];
+    }
 
-		$config = file_get_json(BASEPATH.$this->config_file);
-
-		if( isset($config->database->debug) )
-		{
-			$this->debug 	= $config->database->debug;
-		}
-
-		if(isset($config->database))
-		{
-			$this->user 	 = $config->database->user   ;
-			$this->pass 	 = $config->database->pass   ;
-			$this->host 	 = $config->database->host   ;
-			$this->db   	 = $config->database->db     ;
-			$this->charset   = $config->database->charset;
-			$this->collate   = $config->database->collate;
-			$this->driver    = $config->database->driver ;
-		}
-		else
-		{
-			_LOG(core::getInstance(), __CLASS__, "No se hallo la sección [database]");
-		}
-
-		unset($config);
-	}
-
-
+    /**
+     * Get current dsn active
+     *
+     * @return string or FALSE
+     */ 
+    public function getConectionIdentity()
+    { 
+        return $this->current ? $this->current : FALSE; //("Current identity is NULL") ;
+    }   
+ 
     /**
      * Set character_set conection 
      * 
-     * 
+     * @param   string charset
+     * @param   string collate
      */
-	private function after_connect() {
+    private function setEncoding($charset, $collate) {
 
-		$this->rawExec("SET NAMES {$this->charset}");
-		$this->rawExec("SET CHARACTER SET {$this->charset}");
-		$this->rawExec("
-			SET
-				character_set_results 	 = '{$this->charset}',
-				character_set_client 	 = '{$this->charset}',
-				character_set_connection = '{$this->charset}',
-				character_set_database 	 = '{$this->charset}',
-				character_set_server 	 = '{$this->charset}',
-				collation_connection 	 = '{$this->collate}';
-		"); 
-	}
+        $this->rawExec("SET NAMES {$charset}");
+        $this->rawExec("SET CHARACTER SET {$charset}");
+        $this->rawExec("
+            SET
+                character_set_results    = '{$charset}',
+                character_set_client     = '{$charset}',
+                character_set_connection = '{$charset}',
+                character_set_database   = '{$charset}',
+                character_set_server     = '{$charset}',
+                collation_connection     = '{$collate}';
+        "); 
+    }
 
 
     /**
      * Exec query and get raw results
      * 
      * @param   string SQL query
-     * @return  object
+	 
+     * @return  PDOResult Object
      */
-	public function rawExec($str)
-	{
+    public function rawExec($str)
+    {
+        $cId = $this->getConectionIdentity();
 
-		$result = $this->link->query($str, PDO::FETCH_ASSOC);
+        if(!isset($this->link[$cId])) 
+        {  
+            $is_connect = $this->connect($cId, $this->dsn[$cId]);
+
+            if($is_connect==FALSE)
+            { 
+                APP_LOG( __CLASS__, "Dont allow conect {$cId}" ); 
+            }
+        }
+
+        if(!isset($this->link[$cId])) 
+        {
+            APP_LOG( __CLASS__, "{cId}: DONT CONNECT" );
+
+            return FALSE;
+        }
+
  
-		if(!$result)
-		{
-		    _LOG(core::getInstance(), __CLASS__, "SQL Error: {$str}");
-		}
-		else
-		{
-		    if($this->debug == TRUE) _LOG(core::getInstance(), __CLASS__, "SQL: {$str}");
-		}
+        $result = $this->link[$cId]->query($str, PDO::FETCH_ASSOC);
+ 
+        if(!$result)
+        {
+            APP_LOG( __CLASS__, "SQL Error: {$str}" ); 
+        }
+        else
+        {
+            if($this->debug == TRUE) APP_LOG( __CLASS__, "SQL: {$str}" );
+        }
 
-		return $result;
-	}
+        return $result;
+    }
 
 
     /**
@@ -341,28 +296,34 @@ class database {
      * @param   string SQL query
      * @return  object
      */
-	public function query($str)
-	{
-		if  (!$this->link)
-		{
-		    $this->isok = FALSE;
-		    $this->connect();
-		    $this->after_connect();
-		}
+    public function query($str)
+    {
+        $cId = $this->getConectionIdentity();
 
-		$result = new database_result();
+        $is_connect = $this->connect($cId, $this->dsn[$cId]);
 
-		try
-		{
-		    $result->set_databind($str, $this->rawExec($str, PDO::FETCH_ASSOC));
-		}
-		catch (Exception $e)
-		{
-		    echo $e->getMessage();
-		}
+        if($is_connect==FALSE)
+        { 
+            //_LOG
+            APP_LOG(__CLASS__, "Dont allow conect {$cId}"); 
+        }
+
+        $result = new database_result();
+
+        try
+        {
+            $result->set_databind($str, $this->rawExec($str, PDO::FETCH_ASSOC));
+        }
+        catch (Exception $e)
+        { 
+            APP_LOG(__CLASS__, "Query Databind error: ".$e->getMessage());
+
+            $result->set_error($e);
+
+        }
  
-		return $result;
-	}
+        return $result;
+    }
 
 
     /**
@@ -371,34 +332,38 @@ class database {
      * @param   string SQL query
      * @return  object
      */
-	public function procedure($str)
-	{
-		if  (!$this->link)
-		{
-		    $this->isok = FALSE;
-		    $this->connect();
-		    $this->after_connect();
-		}
- 
-		$sql_query = $this->link->prepare($str);
+    public function procedure($str)
+    {
+        $cId = $this->getConectionIdentity();
 
-		$sql_query->execute(); 
-
-		$result = new database_result();
+        if  (!$this->link[$cId])
+        {
+            $this->isok[$cId] = FALSE;
+            $this->connect();
+            $this->after_connect();
+        }
  
-		try
-		{
-		    $result->set_databind($str, $sql_query->fetchAll() );
-		}
-		catch (Exception $e)
-		{
-		    echo $e->getMessage();
-		}
+        $sql_query = $this->link[$cId]->prepare($str);
 
-		$sql_query->closeCursor();
+        $sql_query->execute(); 
+
+        $result = new database_result();
  
-		return $result;
-	}
+        try
+        {
+            $result->set_databind($str, $sql_query->fetchAll() );
+        }
+        catch (Exception $e)
+        { 
+            APP_LOG(__CLASS__, "Procedure Databind error: ".$e->getMessage());
+			
+            $result->set_error($e);
+        }
+
+        $sql_query->closeCursor();
+ 
+        return $result;
+    }
 
 
     /**
@@ -406,19 +371,20 @@ class database {
      * 
      * @return  int
      */
-	public function last_id()
-	{
-		$rs = $this->query("SELECT LAST_INSERT_ID() AS 'id'");
+    public function last_id()
+    {
 
-		$id = 0; 
+        $rs = $this->query("SELECT LAST_INSERT_ID() AS 'id'");
 
-		foreach ($rs->result() as $row)  
-		{ 
-			$id = (int)$row->id; 
-		}	
-		
-		return $id;
-	}
+        $id = 0; 
+
+        foreach ($rs->result() as $row)  
+        { 
+            $id = (int)$row->id; 
+        }   
+        
+        return $id;
+    }
 
 
     /**
@@ -427,80 +393,224 @@ class database {
      * @param   string TableName
      * @return  object datatable
      */
-	public function table($name)
-	{ 
-		$QB = new datatable();
-		$QB->connect($this);
-		$QB->set($name);
+    public function table($name)
+    { 
+        $QB = new datatable();
+        $QB->connect($this);
+        $QB->set($name);
 
-		return $QB;
-	}
+        return $QB;
+    }
+
+
+    /**
+     * check if exist table
+     *
+     * @param   string TableName
+     * @return boolean
+     */
+    public function exist($table)
+    {
+        if($this->current)
+            $db = $this->dsn[$this->current]->db;
+        else
+            return FALSE;
+
+
+        $rs = $this->query("SELECT * FROM information_schema.TABLES WHERE table_schema = '{$db}'  AND table_name = '{$table}' LIMIT 1");
+
+        $ret = FALSE; foreach ($rs->result() as $row) { $ret = TRUE;  }
+
+        return $ret;
+    }
+
+
+    /**
+     * get object list of tables
+     *
+     * @return object
+     */
+    public function show_tables()
+    {
+        if($this->current)
+            $db = $this->dsn[$this->current]->db;
+        else
+            return FALSE;
+
+        return $this->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE table_schema = '{$db}'");
+    }
+
+
+    /**
+     * get object list with columns of table 
+     *
+     * @param   string TableName
+     * @return object
+     */
+    public function show_column($table)
+    {
+        if($this->current)
+            $db = $this->dsn[$this->current]->db;
+        else
+            return FALSE;
+
+        return $this->query("SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, COLUMN_COMMENT FROM information_schema.COLUMNS WHERE table_schema = '{$db}'  AND table_name = '{$table}'");
+    }
+
+    /**
+     * get object list with columns of table 
+     *
+     * @param   string TableName
+     * @param   string ColumnName
+     * @return boolean
+     */
+    public function has_column($table, $column)
+    {
+        if($this->current)
+            $db = $this->dsn[$this->current]->db;
+        else
+            return FALSE;
+
+        $rs = $this->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE table_schema = '{$db}'  AND table_name = '{$table}' AND COLUMN_NAME='{$column}' LIMIT 1");
+
+        $ret = FALSE; foreach ($rs->result() as $row) { $ret = TRUE;  }
+
+        return $ret;
+    }
+
+    /**
+     * get object list with columns configuration of table 
+     *
+     * @param   string TableName
+     * @return object
+     */
+    public function show_full_column($table)
+    {
+        if($this->current)
+            $db = $this->dsn[$this->current]->db;
+        else
+            return FALSE;
+
+        return $this->query("SELECT ORDINAL_POSITION, COLUMN_NAME, COLUMN_TYPE, COLUMN_KEY  FROM information_schema.COLUMNS WHERE table_schema = '{$db}'  AND table_name = '{$table}'");
+    }
+
+    /**
+     * get true if table has primary key 
+     *
+     * @param   string TableName
+     * @return boolean
+     */
+    public function is_primary_key($table)
+    { 
+        if($this->current)
+            $db = $this->dsn[$this->current]->db;
+        else
+            return FALSE;
+
+        $rs = $this->query
+        ("
+            SELECT EXISTS
+            (
+              SELECT 1
+              FROM information_schema.columns
+              WHERE table_schema = '{$db}'
+                 and table_name  ='{$table}'
+                 and column_key = 'PRI'
+            ) As has");
+
+
+        $ret = FALSE; 
+
+        foreach ($rs->result() as $row) 
+        {
+            $row->has = (int)$row->has;
+
+            if( $row->has == 1 ) 
+                $ret = TRUE;  
+        }
+
+        return $ret;
+    }
+
+    /**
+     * get true if schema exist
+     *
+     * @param   string dsn
+     * @return boolean
+     */
+    public function schema_exist($cId)
+    {
+        return isset($this->dsn[$cId]) ? true : false ;
+    }
+
 
 
     /**
      * Close conection
      * 
      */
-	public function close() {
-	    if($this->link) $this->link = NULL;
-	}
+    public function close() {
+        $cId = $this->getConectionIdentity();
+
+        if($this->link[$cId]) $this->link[$cId] = NULL;
+    }
 }
 
 
 
 class datatable
 {
-	private $table = "";
-	private $db    = NULL;
+    private $table = "";
+    private $db    = NULL;
 
-	public function connect($database)
-	{
-		$this->db = $database;
-	}
+    public function connect($database)
+    {
+        $this->db = $database;
+    }
 
-	public function run($query)
-	{ 
-		$result = $this->db->query($query);
-		
-		echo "{$query};";
+    public function run($query)
+    { 
+        $result = $this->db->query($query);
+        
+        echo "{$query};";
 
-		return $result;
-	}
+        return $result;
+    }
 
-	public function set($name)
-	{ 
-		$this->table = $name; 
-	}
+    public function set($name)
+    { 
+        $this->table = $name; 
+    }
 
-	public function all()
-	{
-		$query = " SELECT * FROM {$this->table} ";
-		
-		return $this->run($query);
-	}
+    public function all()
+    {
+        $query = " SELECT * FROM {$this->table} ";
+        
+        return $this->run($query);
+    }
 
-	public function id($id)
-	{
-		$query = " SELECT * FROM {$this->table} WHERE id ='{$id}' ";
-		
-		return $this->run($query);
-	}
+    public function id($id)
+    {
+        $query = " SELECT * FROM {$this->table} WHERE id ='{$id}' ";
+        
+        return $this->run($query);
+    }
 
-	public function where($where)
-	{
-		$query = " SELECT * FROM {$this->table} WHERE {$where} ";
-		
-		return $this->run($query);
-	}
+    public function where($where)
+    {
+        $query = " SELECT * FROM {$this->table} WHERE {$where} ";
+        
+        return $this->run($query);
+    }
 
-	public function compose($select, $where, $order ="", $limit="")
-	{
-		$order = $order ? "ORDER BY {$order}" : "";
-		$limit = $limit ? "LIMIT {$limit}" : "";
-		
+    public function compose($select, $where, $order ="", $limit="")
+    {
+        $order = $order ? "ORDER BY {$order}" : "";
+        $limit = $limit ? "LIMIT {$limit}" : "";
+        
 
-		$query = " SELECT {$select} FROM {$this->table} WHERE {$where} {$order} {$limit}";
+        $query = " SELECT {$select} FROM {$this->table} WHERE {$where} {$order} {$limit}";
 
-		return $this->run($query);
-	}
+        return $this->run($query);
+    }
 }
