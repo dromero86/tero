@@ -5,8 +5,9 @@
   </a>
 </p>
 
+<p align="center">
 Tero is a micro web framework for PHP thought for the simple writing and fast resolution of problems.
-
+</p>
 
 
 
