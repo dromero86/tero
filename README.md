@@ -4,11 +4,12 @@
 	  <h3 align="center">TERO FRAMEWORK</h3> 
   </a>
 </p>
-<br>
+<hr>
 <p align="center">
 Tero is a micro web framework for PHP thought for the simple writing and fast resolution of problems.
 </p>
 
+\
 \
 \
 \
