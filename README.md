@@ -1,12 +1,14 @@
 <p align="center">
   <a href="https://github.com/dromero86/tero/" target="_blank" >
-    <img alt="Tero" src="https://i.pinimg.com/originals/7e/9e/62/7e9e624d4ba03c5755a83764964a878d.jpg" width="400" />
+    <img alt="Tero" src="https://i.pinimg.com/originals/7e/9e/62/7e9e624d4ba03c5755a83764964a878d.jpg" height="130" /> <br>
+	  <h1>TERO FRAMEWORK</h1>
   </a>
 </p>
 
 Tero is a micro web framework for PHP thought for the simple writing and fast resolution of problems.
 
-# TERO
+
+### About Tero
 
 Tero is written in php 5.3 (which supports the use of anonymous functions with bind), designed to run both that version and server versions 5.6 and 7+
 
