@@ -10,7 +10,9 @@ Tero is a micro web framework for PHP thought for the simple writing and fast re
 </p>
 
 
-
+&nbsp;
+&nbsp;
+&nbsp;
 
 
 
