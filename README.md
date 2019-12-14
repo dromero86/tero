@@ -2,6 +2,7 @@
   <a href="https://github.com/dromero86/tero/" target="_blank" >
     <img alt="Tero" src="https://i.pinimg.com/originals/7e/9e/62/7e9e624d4ba03c5755a83764964a878d.jpg" height="130" /> <br>
 	  <h3 align="center">TERO FRAMEWORK</h3>
+	  <hr/>
   </a>
 </p>
 
