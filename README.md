@@ -249,7 +249,7 @@ The use of post is not native to the core of tero, but if it is included as a li
     "loader":
     [
         ...
-        {"file":"app/vendor/input" , "library":{ "class":"input" , "rename":"input"  } 
+        {"file":"app/vendor/input" , "library":{ "class":"input" , "rename":"input"  } }
 
 ```
 Its use is really simple
