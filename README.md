@@ -609,7 +609,7 @@ Let's include it to core.json
     "loader":
     [
       …
-      {"file":"app/vendor/Dataset", "library":{ "class":"Dataset" , "rename":"data"  } 
+      {"file":"app/vendor/Dataset", "library":{ "class":"Dataset" , "rename":"data"  } }
 ```
 
 How is it used?
