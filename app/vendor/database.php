@@ -351,7 +351,7 @@ class database {
  
         try
         {
-            $result->set_databind($str, $sql_query->fetchAll() );
+            $result->set_databind($str, $sql_query->fetchAll(PDO::FETCH_CLASS) );
         }
         catch (Exception $e)
         { 
