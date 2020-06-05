@@ -18,14 +18,17 @@
  */ 
 class upload
 {
-	private $status         = ""	;
-	private $code           = 0		;
-	private $message        = ""	;
-	private $file           = ""	; 
-	private $key            = ""	; 
-	private $folder         = "./"	; 
-	private $renameFile     = 0 	; 
-	private $extensions 	= array();
+    private $status         = ""    ;
+    private $code           = 0     ;
+    private $message        = ""    ;
+    private $file           = ""    ; 
+    private $name           = ""    ; 
+    private $sname           = ""    ; 
+    private $key            = ""    ; 
+    public  $folder         = "./"  ; 
+    private $renameFile     = 0     ; 
+    private $extensions     = array();
+    private $_bucket        = ""    ;  //aws bucket
 
 	const FILE_SIZE_ERROR  =  1; 
 	const FILE_FORM_ERROR  =  2; 
@@ -33,10 +36,10 @@ class upload
 	const FILE_NOTF_ERROR  =  4;  
 	const FILE_TEMP_ERROR  =  6; 
 	const FILE_PERM_ERROR  =  7; 
-	const FILE_EXT_ERROR   =  8;   
-	const FILE_POST_ERROR  = 11;
+	const FILE_EXT_ERROR   =  8;  
 	const FILE_MOVE_ERROR  =  9;
-	const FILE_UPLOAD_OK   = 10;
+	const FILE_UPLOAD_OK   = 10; 
+    const FILE_POST_ERROR  = 11;
 	const FILE_BAD_EXT     = 12;
 
 	const UPLOAD_NO_RENAME 	 = 0;
@@ -44,10 +47,11 @@ class upload
 	const UPLOAD_RENAME_LINK = 2;
 	const UPLOAD_RENAME_COMP = 3;
 
-	const TYPE_IMAGES = array('JPG' , 'PNG' , 'GIF', 'JPEG', 'BMP', 'TIFF', 'SVG');
-	const TYPE_OFFICE = array('DOC' , 'DOCX', 'RTF', 'XLS' ,'XLSX','CSV','PDF', 'PPT', 'PPTX' , 'ODT', 'ODF');
-	const TYPE_VIDEO  = array('WEBM', 'SWF' , 'AVI', 'MP4' , 'MPG', 'MPEG' );
-	const TYPE_TEXT   = array('TXT' , 'LOG');
+    const TYPE_IMAGES = array('JPG' , 'PNG' , 'GIF', 'JPEG', 'BMP', 'TIFF', 'SVG');
+    const TYPE_OFFICE = array('DOC' , 'DOCX', 'RTF', 'XLS' ,'XLSX','CSV','PDF', 'PPT', 'PPTX' , 'ODT', 'ODF');
+    const TYPE_VIDEO  = array('WEBM', 'SWF' , 'AVI', 'MP4' , 'MPG', 'MPEG' );
+    const TYPE_TEXT   = array('TXT' , 'LOG' , 'JSON');
+    const TYPE_EXCEL  = array('XLS' , 'XLSX'); 
 
 	private static $instancia= null;
 
@@ -90,6 +94,11 @@ class upload
 		$this->extensions = $value;
 	}
 
+    public function setTreatFileAs($value)
+    {
+        $this->renameFile = $value;
+    }
+ 
 	private function decode()
 	{
 		$FILE = new stdclass;
@@ -103,15 +112,17 @@ class upload
 		return $FILE;
 	}
 
-	private function setMessage($status, $code, $message, $file)
-	{
-		$this->status  = $status ;
-		$this->code    = $code   ; 
-		$this->message = $message;
-		$this->file    = $file   ;
+    private function setMessage($status, $code, $message, $file)
+    {
+        $this->status  = $status ;
+        $this->code    = $code   ; 
+        $this->message = $message;
+        $this->file    = $file   ;
+        $this->name    = $file   ;
+        $this->sname   = $file   ;
 
-		return $this->returnMessage();
-	}
+        return $this->returnMessage();
+    }
 
 	private function caseError($error)
 	{
@@ -128,26 +139,50 @@ class upload
         } 		
 	}
 
-	private function returnMessage()
-	{
-		$o          = new stdclass;
-		$o->status  = $this->status         ;
-		$o->code    = $this->code           ;
-		$o->message = $this->message        ;
-		$o->file    = $this->file           ;  
-		return $o;
-	}
+    private function returnMessage()
+    {
+        $o          = new stdclass;
+        $o->status  = $this->status         ;
+        $o->code    = $this->code           ;
+        $o->message = $this->message        ;
+        $o->file    = $this->file           ;          
+        $o->name    = $this->file           ;
+        $o->sname   = $this->file           ; 
+        return $o;
+    }
 
-	private function getExtension($filename)
-	{
-		return pathinfo($filename, PATHINFO_EXTENSION);
-	}
+    private function getExtension($filename)
+    {
+        $str = "";
+
+        try
+        {       
+            $str = pathinfo($filename, PATHINFO_EXTENSION);
+        }
+        catch(Exception $e)
+        {   
+             
+        }  
+
+        return $str;
+    }
 
 
-	private function getNamefile($filename)
-	{
-		return pathinfo($filename, PATHINFO_FILENAME);
-	}
+    private function getNamefile($filename)
+    {  
+        $str = "";
+
+        try
+        {       
+            $str = pathinfo($filename, PATHINFO_FILENAME);
+        }
+        catch(Exception $e)
+        {   
+             
+        }  
+
+        return $str;
+    }
 
 
 
@@ -170,61 +205,99 @@ class upload
 	}
 
 
-	private function getFilename($originpath , $filename)
-	{
-		$ext  = $this->getExtension($filename);
-		$name = $this->getNamefile ($filename);
+    private function getFilename($originpath , $filename)
+    {
+        $ext  = $this->getExtension($filename);
+        $name = $this->getNamefile ($filename);
 
-		switch($this->renameFile)
-		{
-			case SELF::UPLOAD_NO_RENAME  :  break;
-			
-			case SELF::UPLOAD_RENAME_MD5 : 
-				$filename = md5_file($originpath).$ext;
-			break;
-			
-			case SELF::UPLOAD_RENAME_LINK: 
-				$filename = to_link($name).$ext;
-			break;
-			
-			case SELF::UPLOAD_RENAME_COMP: 
-				$filename = md5_file($originpath)."_".$this->to_link($name).$ext;
-			break;
-		}
+        switch($this->renameFile)
+        {
+            case SELF::UPLOAD_NO_RENAME  :  break;
+            
+            case SELF::UPLOAD_RENAME_MD5 : 
+
+                try
+                {       
+                    $filename = md5_file($originpath).".".$ext;
+                }
+                catch(Exception $e)
+                {   
+                     
+                }   
+                
+            break;
+            
+            case SELF::UPLOAD_RENAME_LINK: 
+                $filename = to_link($name).$ext;
+            break;
+            
+            case SELF::UPLOAD_RENAME_COMP: 
+
+                try
+                {       
+                    $filename = md5_file($originpath)."_".$this->to_link($name).".".$ext;
+                }
+                catch(Exception $e)
+                {   
+                     
+                }   
+
+            break;
+        }
  
-		$item = $this->folder.$filename;
+        $item = $this->folder.$filename;
 
-		return $item;
-	}
+        $this->file = $filename;
+
+        return $item;
+    }
 
 
-	private function process()
-	{  
-	    if(! isset($_FILES[$this->key])) return $this->setMessage("error", SELF::FILE_POST_ERROR, "POST INVALIDO", ""); 
+    public function request()
+    {  
+        if(! isset($_FILES[$this->key])) return $this->setMessage("error", SELF::FILE_POST_ERROR, "POST INVALIDO", ""); 
  
         $FILE       = $this->decode(); 
         $this->file = $FILE->name;
 
         if ($FILE->error > 0)
         { 
-			$this->status= "error";
-			$this->code  = $FILE->error ;
-			$this->caseError($FILE->error); 
+            $this->status= "error";
+            $this->code  = $FILE->error ;
+            $this->caseError($FILE->error); 
 
-			return $this->returnMessage();
+            return $this->returnMessage();
         }
         else
         { 
-        	if ( !in_array( strtoupper($this->getExtension($FILE->name)) , $this->extensions  ) )  return $this->setMessage("server", SELF::FILE_BAD_EXT, "Extension no permitida", $FILE->name); 
- 
-        	$moveResult = move_uploaded_file($FILE->temp, $this->getFilename($FILE->temp, $FILE->name) );
- 
+            if ( !in_array( strtoupper($this->getExtension($FILE->name)) , $this->extensions  ) )  
+                return $this->setMessage("error", SELF::FILE_BAD_EXT, "Extension no permitida", $FILE->name); 
+
+               $moveResult = @move_uploaded_file($FILE->temp, $this->getFilename($FILE->temp, $FILE->name) );
+
+
             if($moveResult != TRUE)  
-            	return $this->setMessage("error", SELF::FILE_MOVE_ERROR, "el archivo no puede moverse a ".$this->folder.$FILE->name, ""); 
-			
-			return $this->setMessage("server", SELF::FILE_UPLOAD_OK, "Archivo subido correctmente", $this->folder.$FILE->name); 
+                return $this->setMessage("error", SELF::FILE_MOVE_ERROR, "el archivo no puede moverse a ".$this->folder.$this->file, ""); 
+            
+            return $this->setMessage("server", SELF::FILE_UPLOAD_OK, "Archivo subido correctmente", $this->file); 
+        }  
+    }  
+
+    public function toAmazonS3($bucket_folder, $amazon_function_upload)
+    {
+        $fullpath = "{$this->folder}/{$this->file}";
+
+        if(is_file($fullpath))
+        {
+            call_user_func_array($amazon_function_upload, array
+            (
+                $this->_bucket, 
+                "{$bucket_folder}/{$this->file}", 
+                file_get_contents($fullpath)
+            ));
+
+            @unlink($fullpath);
         }
-	     
-	} 
+    }
 
 }

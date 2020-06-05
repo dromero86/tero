@@ -1,6 +1,0 @@
-{
-    "path": "ui/themes/demo/",
-
-    "vars": "vars.json",
-    "view": "view.json"
-}

@@ -56,7 +56,7 @@ class core {
      *
      * @var string
      */
-    const VERSION = '4.0.2-dev';
+    const VERSION = '4.0.3-stable';
 
 
     /**
