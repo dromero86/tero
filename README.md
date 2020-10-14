@@ -307,7 +307,8 @@ This indicates that we will have access to the database through the core attribu
         "db"        : "mydbname"        ,
         "charset"   : "utf8"      ,
         "collate"   : "utf8_general_ci",
-        "debug"     : false
+        "debug"     : false,
+	"default"   : true
     }
 }
 ```
