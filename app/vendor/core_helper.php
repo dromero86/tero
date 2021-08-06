@@ -358,3 +358,36 @@ if (!function_exists('to_post'))
 		return $str  ;  
 	}
 }
+
+
+if (!function_exists('mail_core_error')) 
+{
+	function mail_core_error($subject, $message)
+	{
+		$core = core::getInstance();
+
+		if( !isset($core->email) ) return;
+
+		$subject = "{$core->email->on_error_project} {$subject}";
+	 
+		try
+		{ 
+			$request = ( isset($_SERVER["REQUEST_URI"]) ? $core->email->on_error_url.$_SERVER["REQUEST_URI"] : "");
+ 
+			$core->email->from   ( $core->email->contacto, $core->email->nombre);
+			$core->email->to     ( $core->email->on_error_addr ); 
+			$core->email->subject( $subject );
+			$core->email->message
+			("
+			<div>{$message}</div>
+			<blockquote>{$core->email->on_error_text}<br>{$request}</blockquote>
+			");
+
+			$core->email->send();
+		}
+		catch(Exception $e)
+		{  
+	        
+		} 
+	}
+}

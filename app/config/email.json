@@ -1,15 +1,19 @@
 {
 	"default"	   :
-	{
-		"useragent" : "Microsoft Office Outlook 12.0",
-		"protocol"	: "smtp" 	,
-		"mailtype"	: "html"	,
-		"charset"	: "utf-8" 	,
-		"wordwrap"	: true  	,
-		"smtp_host"	: "" 		, 
-		"smtp_user" : "" 		,
-		"smtp_pass"	: "" 		,
-		"contacto"	: "",
-		"nombre"    : ""
+	{ 
+		"useragent"       : "Microsoft Office Outlook 12.0" ,
+		"protocol"	      : "smtp" ,
+		"mailtype"	      : "html" ,
+		"charset"	      : "utf-8" ,
+		"wordwrap"	      : true ,
+		"smtp_host"	      : "" , 
+		"smtp_user"       : "" ,
+		"smtp_pass"	      : "" , 
+		"sender_name"     : "" ,
+		"sender_addr"     : "" ,
+		"on_error_project": "" ,
+		"on_error_url"    : "" ,
+		"on_error_addr"   : "" ,
+		"on_error_text"   : "Para reproducir el error debe ir a: "
 	}
 }

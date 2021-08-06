@@ -320,6 +320,9 @@ class database {
 
             $result->set_error($e);
 
+            mail_core_error("Query Error", "Estimado:<br> La query <pre>{$str}</pre> di el siguiente error:<br><code>".$e->getMessage()."</code><br>Saludos cordiales");
+
+
         }
  
         return $result;
@@ -358,6 +361,8 @@ class database {
             APP_LOG(__CLASS__, "Procedure Databind error: ".$e->getMessage());
 			
             $result->set_error($e);
+
+            mail_core_error("Query Error", "Estimado:<br> La query <pre>{$str}</pre> di el siguiente error:<br><code>".$e->getMessage()."</code><br>Saludos cordiales");
         }
 
         $sql_query->closeCursor();
