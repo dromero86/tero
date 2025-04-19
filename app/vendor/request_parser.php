@@ -1,4 +1,20 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+/**
+ * Tero Framework 
+ *
+ * @link      https://github.com/dromero86/tero
+ * @copyright Copyright (c) 2014-2025 Daniel Romero
+ * @license   https://github.com/dromero86/tero/blob/master/LICENSE (MIT License)
+ */    
+
+/**
+ * Request Parser
+ *
+ * @package     Tero
+ * @subpackage  Vendor
+ * @category    Library
+ * @author      Daniel Romero 
+ */
 
 class request_parser
 {

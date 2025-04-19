@@ -4,7 +4,7 @@
  * Tero Framework 
  *
  * @link      https://github.com/dromero86/tero
- * @copyright Copyright (c) 2014-2019 Daniel Romero
+ * @copyright Copyright (c) 2014-2025 Daniel Romero
  * @license   https://github.com/dromero86/tero/blob/master/LICENSE (MIT License)
  */    
 
