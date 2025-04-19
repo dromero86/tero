@@ -58,8 +58,7 @@ class request_parser
     {
         $action = '';
         $arguments = [];
-
-        // Buscar action en GET o POST
+ 
         foreach (['requestParams'] as $source) {
             if (isset($this->$source['action'])) {
                 $action = $this->$source['action'];
@@ -69,8 +68,6 @@ class request_parser
             }
         }
 
-        // Parsear URL amigable
-
         $friendly_url = $this->match_params();
 
         if($friendly_url instanceof stdClass){
@@ -78,7 +75,6 @@ class request_parser
             if(!empty($friendly_url->method)) $arguments = $friendly_url->param;
         }
 
-        // Combinar con parámetros GET
         return [
             'action' => $action,
             'arguments' => array_merge($arguments, $this->requestParams)
