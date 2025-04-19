@@ -4,8 +4,7 @@ class request_parser
 {
     private static ?self $instance = null;
     private bool $isCli; 
-    private array $requestParams;
-    //private string $requestUri;
+    private array $requestParams; 
     private array $cliArgs;
     private $routes;
 
@@ -18,8 +17,7 @@ class request_parser
         if ($this->isCli) {
             $this->cliArgs = array_slice($argv, 1);
         } else {
-            $this->requestParams = $_REQUEST;
-            //$this->requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+            $this->requestParams = $_REQUEST; 
         }
     }
 
@@ -56,6 +54,7 @@ class request_parser
         }
 
         // Parsear URL amigable
+
         $friendly_url = $this->match_params();
 
         if($friendly_url instanceof stdClass){
@@ -110,75 +109,39 @@ class request_parser
         return $object;
     }
 
-
-    /**
-     * Pattern for url match params
-     * 
-     */
-    public function pattern_uri_regex($matches) 
-    {
-        return '([a-zA-Z0-9_\+\-%]+)';
-    }
-
-    /**
-     * GET url for rewrite method
-     * 
-     */
-    private function get_client_route()
-    {
-        $uri  = isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : "";
-        $file = isset($_SERVER["PHP_SELF"]) ? $_SERVER["PHP_SELF"] : "";
-        $dir  = pathinfo($file,PATHINFO_DIRNAME);
-        $uri  = str_replace($dir."/", "", $uri);
-        $uri  = trim($uri,"/");
-        $uri  = trim($uri); 
-
-        return $uri;
-    }
-
-
-    /**
-     * GET method from rewrite with params 
-     * 
-     */
-    private function match_params()
-    {
-        $request_uri = $this->get_client_route();
-        $found       = FALSE;
-        $return      = FALSE;
-
-        $request_uri = trim($request_uri ,"/"); 
-
-        foreach ($this->routes as $key=>$pattern_uri)
-        { 
-            preg_match_all('/:([0-9a-zA-Z_]+)/', $pattern_uri, $names, PREG_PATTERN_ORDER); 
-
-            $names = $names[0];
-
-            $pattern_uri_regex  = preg_replace_callback('/:[[0-9a-zA-Z_]+/', array($this, 'pattern_uri_regex'), $pattern_uri);
-            $pattern_uri_regex .= '/?';
-
-            if(count($names))
-            {
-                $params = []; 
- 
-                if (preg_match('@^' . $pattern_uri_regex . '$@', $request_uri, $values))
-                {
-                    array_shift($values);
-
-                    foreach($names as $index => $value) 
-                    {
-                        $params[substr($value, 1)] = urldecode($values[$index]); 
-                    }
-    
-                    $return = new stdclass;
-                    $return->method = $pattern_uri;
-                    $return->param  = $params;
-                    return $return;
+    public function match_params() {
+        $path = $this->getCurrentPath(); 
+        
+        foreach ($this->routes as $route) {   
+            if (preg_match($route['regex'], $path, $matches)) {
+                $params = [];
+                foreach ($route['params'] as $param) {
+                    $params[] = $matches[$param];
                 }
-            } 
+                
+                $object = new stdClass;
+                $object->method = $route['pattern'];
+                $object->param  = $params;
+                
+                return $object;
+            }
         }
+        
+        return FALSE;
+    }
+      
+    private function getCurrentPath() {
+        if (!empty($_SERVER['PATH_INFO'])) {
+            $path = $_SERVER['PATH_INFO'];
+            $path = trim($path, "/");
 
-        return $return;
+            return $path;
+        }
+        
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+        $path = parse_url($requestUri, PHP_URL_PATH);
+        $path = trim($path, "/");
+
+        return $path;
     }
 }

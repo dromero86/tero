@@ -35,6 +35,7 @@ define('BASEPATH'   , str_replace("\\", "/", $system_path));
 define('FCPATH'     , str_replace(SELF, '' , __FILE__    ));
 define('SYSDIR'     , trim(strrchr(trim(BASEPATH, '/'), '/'), '/'));
 
+
 require FCPATH."core_helper".EXT;
 require FCPATH."request_parser".EXT;
 
@@ -164,6 +165,8 @@ class core {
      */
     function __construct() {
 
+        header("X-Core: Tero ".self::VERSION);
+
         self::$instancia = $this; 
 
         $this->after_load();
@@ -237,13 +240,16 @@ class core {
      * if method exist and is callable, call it 
      */
     public function run() 
-    {  
-        var_dump($_SERVER); 
+    { 
         $requestParser = new request_parser();
         $requestParser->setRoutes($this->routes);
         $request        = $requestParser->getRequest();   
 
-        if( !isset($this->{$request->action})              ) throw new Exception("Method {$request->action} do not exists");
+        if( !isset($this->{$request->action}) ) {
+            http_response_code(404);
+            die("Route {$_SERVER['PATH_INFO']} not found ");
+        }
+        
         if( !($this->{$request->action} instanceof Closure)) throw new Exception("Method {$request->action} is not closure");
         if( !is_callable($this->{$request->action})        ) throw new Exception("Method {$request->action} do not callable");
         
@@ -273,10 +279,37 @@ class core {
      * 
      * 
      */
-    public function get($name, $function) 
+    public function get($pattern, $callback) 
     {
-        $this->routes[$name]= $name;
-        $this->{$name}      = Closure::bind($function, $this, 'core');
+        $paramNames = [];
+        $regex = $this->patternToRegex($pattern, $paramNames);
+
+        $this->routes[$pattern]= [
+            'method'    => $_SERVER['REQUEST_METHOD'],
+            'pattern'   => $pattern,
+            'regex'     => $regex,
+            'params'    => $paramNames,
+            'callback'  => $callback
+        ];
+        $this->{$pattern} = Closure::bind($callback, $this, 'core');
+    }
+
+    private function patternToRegex($pattern, &$paramNames) {
+        $paramNames = [];
+        $parts = explode('/', $pattern);
+        $regexParts = [];
+        
+        foreach ($parts as $part) {
+            if (strpos($part, ':') === 0) {
+                $paramName = substr($part, 1);
+                $paramNames[] = $paramName;
+                $regexParts[] = '(?<' . $paramName . '>[^\/]+)';
+            } else {
+                $regexParts[] = preg_quote($part, '/');
+            }
+        } 
+        
+        return '/^' . implode('\/', $regexParts) . '$/';
     }
 
     /**

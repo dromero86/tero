@@ -10,9 +10,4 @@
 
 require "app/vendor/core.php";
 
-$App->get('test', function(){
-    var_dump($_SERVER); 
-});
-
-
 $App->run(); 
