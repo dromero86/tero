@@ -391,3 +391,47 @@ if (!function_exists('mail_core_error'))
 		} 
 	}
 }
+
+function __TERO_ERROR_HANDLING_CORE($errno, $errstr, $errfile, $errline)
+{
+    if (!(error_reporting() & $errno)) {
+        // Este código de error no está incluido en error_reporting
+        return;
+    }
+
+    $txt = "";
+
+    switch ($errno) {
+    case E_USER_ERROR:
+        $txt.= "<b>Mi ERROR</b> [$errno] $errstr<br />\n";
+        $txt.= "  Error fatal en la línea $errline en el archivo $errfile";
+        $txt.= ", PHP " . PHP_VERSION . " (" . PHP_OS . ")<br />\n";
+        $txt.= "Abortando...<br />\n";
+        exit(1);
+        break;
+
+    case E_USER_WARNING:
+        $txt.= "<b>Mi WARNING</b> [$errno] $errstr<br />\n";
+        $txt.= "  warning en la línea $errline en el archivo $errfile";
+        $txt.= ", PHP " . PHP_VERSION . " (" . PHP_OS . ")<br />\n";
+
+        break;
+
+    case E_USER_NOTICE:
+        $txt.= "<b>Mi NOTICE</b> [$errno] $errstr<br />\n"; 
+        $txt.= "  notice en la línea $errline en el archivo $errfile";
+        $txt.= ", PHP " . PHP_VERSION . " (" . PHP_OS . ")<br />\n";
+        break;
+
+    default:
+        $txt.= "Tipo de error desconocido: [$errno] $errstr<br />\n";
+        $txt.= "  error en la línea $errline en el archivo $errfile";
+        $txt.= ", PHP " . PHP_VERSION . " (" . PHP_OS . ")<br />\n";
+        break;
+    }
+
+
+    mail_core_error("PHP ERROR", $txt); 
+    /* No ejecutar el gestor de errores interno de PHP */
+    return true;
+}
