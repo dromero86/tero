@@ -50,7 +50,7 @@ require FCPATH."request_parser".EXT;
  * Analize pattern url and if match, exec the method
  * 
  */
-
+#[AllowDynamicProperties]
 class core {
 
     /**
@@ -285,7 +285,7 @@ class core {
         $regex = $this->patternToRegex($pattern, $paramNames);
 
         $this->routes[$pattern]= [
-            'method'    => $_SERVER['REQUEST_METHOD'],
+            'method'    => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET',
             'pattern'   => $pattern,
             'regex'     => $regex,
             'params'    => $paramNames,
