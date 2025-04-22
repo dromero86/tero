@@ -17,57 +17,8 @@
  * @category    Library
  * @author      Daniel Romero 
  */ 
-class input
+class RequestInput
 {
-
-    /**
-     * Run time object for Singleton Pattern
-     *
-     * @var object 
-     */     
-	private static $instancia= null;
-
-
-    /**
-     * Get the static core instance 
-     *
-     * @return object
-     */
-	public static function getInstance()
-	{
-		$that = null;
-
-		if (!self::$instancia instanceof self)
-		{
-			if(self::$instancia == null)
-			{
-				$that = new self;
-				self::$instancia = $that;
-			}
-
-		}
-		else
-		{
-			$that = self::$instancia;
-		}
-
-		if($that == null)
-			die(__CLASS__.": Fallo el singleton");
-
-		return $that;
-	}
-
-
-    /**
-     * Constructor store static instance
-     * 
-     * 
-     */
-	function __construct() {
-
-		self::$instancia = $this;
-	}
-
 
     /**
      * Check if has server variables
@@ -88,7 +39,6 @@ class input
      */
 	public function server($key='')
 	{ 
-
 		if($key)
 		{
 			$ret = isset($_SERVER[$key]) ? $_SERVER[$key] : FALSE;
@@ -139,6 +89,7 @@ class input
 
         return count($_PAYLOAD)>0 ? TRUE : FALSE;
     }
+
     /**
      * Check if has post variables item
      *
@@ -222,23 +173,5 @@ class input
 
         return $ret;
     }
-
-    /**
-     * Convert array in json
-     *
-     * @param array
-     * @return string 
-     */
-	public function post2json($array)
-	{ 
-
-		$obj = new stdclass;
-
-		foreach ($array as $value) {
-			$obj->{$value} = $this->post($value);
-		}
-
-		return json_encode($obj);
-	}
 
 }

@@ -16,7 +16,7 @@
  * @author      Daniel Romero 
  */
 
-class request_parser
+class RequestParser
 {
     private static ?self $instance = null;
     private bool $isCli; 
