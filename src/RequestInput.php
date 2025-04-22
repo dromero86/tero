@@ -1,4 +1,6 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+
+namespace Tero;
 
 /**
  * Tero Framework 
@@ -7,7 +9,6 @@
  * @copyright Copyright (c) 2014-2025 Daniel Romero
  * @license   https://github.com/dromero86/tero/blob/master/LICENSE (MIT License)
  */    
-
 
 /**
  * input

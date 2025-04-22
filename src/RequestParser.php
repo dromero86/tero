@@ -1,4 +1,8 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+
+namespace Tero;
+
+use stdClass;
 /**
  * Tero Framework 
  *
