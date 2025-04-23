@@ -13,13 +13,10 @@ namespace Tero;
 
 class Application{
 
-    public static function Run($directory, $class){
+    public static function Get($class){
 
-        $framework = new Framework();
-        $framework->dotEnvLoad($directory);
-        $framework->setEnvVars(["BASEPATH"=> $directory]);
+        $framework = new Framework(__DIR__);
         $container = $framework->dependencyInyection();
-        $entrypointService = $container->get($class);
-        $entrypointService->run(); 
-    }
+        return $container->get($class);
+    } 
 }

@@ -15,15 +15,27 @@ use DI\ContainerBuilder;
 
 class Framework {
 
+    private $basepath = FALSE;
+
+    function __construct($basepath = FALSE){
+        $this->basepath = $basepath ? $basepath : dirname( __DIR__ );
+    }
+
+    public function getBasepath(){
+        return $this->basepath;
+    }
+
     public function setEnvVars($data){
         foreach($data as $key=>$value){
             $_ENV[$key]=$value;
         }
     }
 
-    public function dotEnvLoad($directory){
-        if(file_exists("{$directory}/.env")){
-            $dotenv = Dotenv::createImmutable($directory);
+    public function dotEnvLoad(){
+        $envFile = "{$this->basepath}/.env";
+
+        if(file_exists($envFile)){
+            $dotenv = Dotenv::createImmutable($this->basepath);
             $dotenv->load();
         }
     }
@@ -32,9 +44,7 @@ class Framework {
 
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->useAutowiring(true); 
-        $containerBuilder->addDefinitions([
-            'directories' => [ dirname( __DIR__ ) ]
-        ]);
+        $containerBuilder->addDefinitions([ 'directories' => [ $this->basepath ] ]);
         
         return $containerBuilder->build();
     }

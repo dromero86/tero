@@ -1,10 +1,10 @@
-<?php
+<?php //php -S localhost:8000
 
-require "vendor/autoload.php"; 
+require "../vendor/autoload.php"; 
 
 $App = Tero\Application::Get( Tero\Core::class );
 
-$App->get('index', function(){
+$App->get('demo', function(){
 
     die("Hello Tero!");
 });

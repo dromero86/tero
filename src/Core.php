@@ -107,7 +107,7 @@ class Core {
             'params'    => $paramNames,
             'callback'  => $callback
         ];
-        $this->{$pattern} = Closure::bind($callback, $this, 'core');
+        $this->{$pattern} = Closure::bind($callback, $this, Core::class);
     }
 
     private function patternToRegex($pattern, &$paramNames) {
