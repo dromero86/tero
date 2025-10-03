@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tero Framework - Entry Point
+ * Tero Framework - Public Entry Point
  * 
  * @package Tero
  * @author Daniel Romero
@@ -10,18 +10,18 @@
  */
 
 // Cargar autoloader
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 // Obtener instancia de la aplicación
 $App = Tero\Application::Get();
 
-// Configurar rutas de ejemplo (compatibilidad con versión anterior)
+// Configurar rutas de ejemplo
 $App->get('index', function() {
     return [
         'message' => 'Welcome to Tero Framework!',
         'version' => '4.2.2-dev',
         'timestamp' => date('c'),
-        'note' => 'This route is registered using the legacy method for compatibility'
+        'note' => 'This is the public entry point'
     ];
 });
 
@@ -52,25 +52,4 @@ $App->get('api/protected', function() {
     ];
 });
 
-// Ejemplo de comando CLI
-$App->cli('test', function($args) {
-    echo "Tero Framework CLI Test\n";
-    echo "Arguments: " . implode(', ', $args) . "\n";
-    echo "PHP Version: " . PHP_VERSION . "\n";
-    echo "Framework Version: 4.2.2-dev\n";
-    return 0;
-});
-
-// Ejemplo de comando de sistema
-$App->system('test', function($args) {
-    echo "System command test\n";
-    echo "This is a system command example\n";
-    return 0;
-});
-
-// La aplicación se ejecutará automáticamente al final del script
-// gracias al sistema de auto-ejecución implementado en Core.php
-// No es necesario llamar $App->run() manualmente
-
-// Para compatibilidad, también se puede llamar manualmente:
-// $App->run();
+// La aplicación se ejecutará automáticamente

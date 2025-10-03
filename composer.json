@@ -22,7 +22,22 @@
     },
     "autoload": {
         "psr-4": {
-            "Tero\\": "src/"
+            "Tero\\": "src/",
+            "Tero\\Core\\": "src/Core/",
+            "Tero\\Config\\": "src/Config/",
+            "Tero\\Framework\\": "src/Framework/",
+            "Tero\\Database\\": "src/Database/",
+            "Tero\\Session\\": "src/Session/",
+            "Tero\\Templates\\": "src/Templates/",
+            "Tero\\Views\\": "src/Views/",
+            "Tero\\Data\\": "src/Data/",
+            "Tero\\Cache\\": "src/Cache/",
+            "Tero\\Tools\\": "src/Tools/",
+            "Tero\\Notifications\\": "src/Notifications/",
+            "Tero\\Storage\\": "src/Storage/",
+            "Tero\\I18n\\": "src/I18n/",
+            "Tero\\Events\\": "src/Events/",
+            "Tero\\Queue\\": "src/Queue/"
         }
     },
     "autoload-dev": {

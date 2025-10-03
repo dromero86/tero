@@ -1,6 +1,6 @@
 <?php
 
-namespace Tero;
+namespace Tero\Framework;
 
 use Dotenv\Dotenv;
 use DI\ContainerBuilder;
